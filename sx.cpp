@@ -30,14 +30,13 @@ int main(int argc, char ** argp)
 
 		std::ifstream fileStream(file, std::ios::binary);
 		if (fileStream.good()) {
-			int totalSize = -1;
-			fileStream.seekg(0, std::ios::end);
-			totalSize = (int)fileStream.tellg();
-			fileStream.seekg(0, std::ios::beg);
+			auto fileSize = GetFileSize(fileStream);
 
 			while (!fileStream.eof() && fileStream.good()) {
-				Section tmpSection(fileStream, totalSize);
-				if (tmpSection.data.size() > 0) {
+				Section tmpSection(fileStream, fileSize);
+
+				if (tmpSection.data.size() > 0) 
+				{
 					num_file++;
 
 					std::string filename = GetFilename(file, false).append("_").append(std::to_string(num_file)).append(tmpSection.getExtension());
@@ -51,7 +50,9 @@ int main(int argc, char ** argp)
 						output_file.write(reinterpret_cast<char*>(&tmpSection.data.data()[0]), tmpSection.size);
 						output_file.close();
 						++num_completed;
-					} else {
+					} 
+					else 
+					{
 						printf("Unable to write to %s..\n", path.c_str());
 						++num_failed;
 					}
@@ -63,7 +64,6 @@ int main(int argc, char ** argp)
 		}
 		fileStream.close();
 	}
-
 
 	printf("All tasks completed with %d errors. (%d out of %d with %lld total files).\n", num_failed, num_completed, num_file, files.size());
 }
