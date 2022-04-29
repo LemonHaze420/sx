@@ -24,6 +24,7 @@
     <ProjectGuid>{ff87e54d-479f-4a82-a95f-04e99d6dd73c}</ProjectGuid>
     <RootNamespace>pvrxtractor</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>sx</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -145,7 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="pvr_xtractor.cpp" />
+    <ClCompile Include="sx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Helpers.hpp" />
