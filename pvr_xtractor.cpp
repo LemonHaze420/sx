@@ -1,3 +1,26 @@
+/*
+		(S)ection (X)tractor
+
+
+		Aims to extract "sections" from a directory of files. A "section" is defined as anything which resembles the following structure:-
+
+		*---------------------------------------------------------------------------------------*
+		| Offset		|	Size	|	Value													|
+		*---------------------------------------------------------------------------------------*
+		| 0x0			|	 4		|	FOURCC Identifier (ie. 'PVRT' for PowerVR textures)		|
+		| 0x4			|	 4		|	Size of section in bytes								|
+		*---------------------------------------------------------------------------------------*
+		
+		Files are written to the input/current directory, or optionally to another directory with the third argument.
+
+		Example usage:-
+
+			* sx.exe "/path/to/files"
+			
+			* sx.exe "/path/to/files" "/path/to/output"
+*/
+
+
 #define FOURST(x)		 std::string(reinterpret_cast<char*>(&x), 4)
 #define FOURCC(a,b,c,d)	 (signed int)((char)(a & 0xFF) << 24 | (char)(b & 0xFF) << 16 | (char)(c & 0xFF) << 8 | (char)(d & 0xFF))
 #define FLIP(x)			 (signed int)(( x >> 24 ) | (( x << 8) & 0x00ff0000 )| ((x >> 8) & 0x0000ff00) | ( x << 24))
@@ -16,10 +39,12 @@
 #include <sstream>
 #include <assert.h>
 
+// Files extensions to explicitly exclude when processing files for sections
 std::vector <std::string> exclude_extensions = {
 	".EMU",
 };
 
+// List of Sections to extract
 std::vector<unsigned int> SectionList = {
 	FOURCC('P','V','R','T')
 };
@@ -118,60 +143,35 @@ int main(int argc, char ** argp)
 		std::string output_path = file;
 		replace(output_path, argp[1], output_dir);
 
-		int num_pvrs = 0;
 
 		std::ifstream fileStream(file, std::ios::binary);
 		if (fileStream.good()) {
-			// read in the size of the entire binary..
-			int totalSize = -1;
+			int totalSize = -1, num_file = 0;
 			fileStream.seekg(0, std::ios::end);
-			totalSize = fileStream.tellg();
+			totalSize = (int)fileStream.tellg();
 			fileStream.seekg(0, std::ios::beg);
 
-		LOOP:
-			while (!fileStream.eof()) {
-				int ident = 0x0;
-				fileStream.read(reinterpret_cast<char*>(&ident), 4);
+			while (!fileStream.eof() && fileStream.good()) {
+				Section tmpSection(fileStream, totalSize);
+				if (tmpSection.data.size() > 0) {
+					num_file++;
 
-				if (ident == 0x50565254 || ident == 0x54525650)
-					goto EXTRACT;
+					std::string filename = GetFilename(file, false).append("_").append(std::to_string(num_file)).append(tmpSection.getExtension());
+					std::ofstream output_file(std::filesystem::path(output_path).parent_path().string().append("\\" + filename).c_str(), std::ios::binary);
+
+					std::filesystem::create_directories(std::filesystem::path(output_path).parent_path());
+
+					if (bVerbose)
+						printf("Writing to %s..\n", std::filesystem::path(output_path).parent_path().string().append("\\" + filename).c_str());
+
+					if (output_file.good()) {
+						output_file.write(reinterpret_cast<char*>(&tmpSection.data.data()[0]), tmpSection.size);
+						output_file.close();
+					}
+				}
 			}
-			// move on now, we've finished..
 			if (fileStream.eof() || !fileStream.good())
 				continue;
-			else goto LOOP;
-
-		EXTRACT:
-			if (bVerbose)
-				printf("Found PVRT header @ 0x%X\n", (int)fileStream.tellg());
-
-			int size = 0x0;
-			fileStream.read(reinterpret_cast<char*>(&size), 4);
-			fileStream.seekg(-8, std::ios::cur);
-
-			if ((size > 0) && (size <= totalSize)) {
-				num_pvrs++;
-
-				char* new_file = new char[size];
-				memset(new_file, 0x00, size);
-				fileStream.read(new_file, size);
-				
-				std::string filename = GetFilename(file, false).append("_").append(std::to_string(num_pvrs)).append(".pvr");
-				std::ofstream output_file(std::filesystem::path(output_path).parent_path().string().append("\\" + filename).c_str(), std::ios::binary);
-
-				// create directory structure if it doesn't exist...
-				std::filesystem::create_directories(std::filesystem::path(output_path).parent_path());
-
-				if (bVerbose)
-					printf("Writing to %s..\n", std::filesystem::path(output_path).parent_path().string().append("\\" + filename).c_str());
-
-				if (output_file.good()) {
-					output_file.write(new_file, size);
-					output_file.close();
-				}
-				delete[] new_file;
-			}
-			goto LOOP;
 		}
 		fileStream.close();
 	}
