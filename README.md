@@ -3,12 +3,12 @@
 
 A "section" is defined as anything which resembles the following structure:-
 		
-		*---------------------------------------------------------------------------------------*
-		| Offset 	| Size	| Value								|
-		*---------------------------------------------------------------------------------------*
-		| 0x0		|  4	| FOURCC Identifier (ie. 'PVRT' for PowerVR textures)		|
-		| 0x4		|  4	| Size of section in bytes					|
-		*---------------------------------------------------------------------------------------*
+	*---------------------------------------------------------------------------------------*
+	| Offset 	| Size	| Value								|
+	*---------------------------------------------------------------------------------------*
+	| 0x0		|  4	| FOURCC Identifier (ie. 'PVRT' for PowerVR textures)		|
+	| 0x4		|  4	| Size of section in bytes					|
+	*---------------------------------------------------------------------------------------*
 
 By default, `sx` will find and extract PowerVR textures found in any of the input files (denoted by the `PVRT` FOURCC).. however, support for other sections can easily be added by adjusting the arrays at the top of `sx.cpp`.
 
