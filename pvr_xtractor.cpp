@@ -1,9 +1,9 @@
 /*
 		(S)ection (X)tractor
 
-
-		Aims to extract "sections" from a directory of files. A "section" is defined as anything which resembles the following structure:-
-
+		Aims to extract "sections" from a directory of files while respecting the original file structure. 
+		
+		A "section" is defined as anything which resembles the following structure:-
 		*---------------------------------------------------------------------------------------*
 		| Offset		|	Size	|	Value													|
 		*---------------------------------------------------------------------------------------*
@@ -136,17 +136,16 @@ int main(int argc, char ** argp)
 		output_dir = argp[2];
 
 	auto files = FindFilesOfExtension(argp[1]);
+	int num_file = 0, num_completed = 0, num_failed = 0;
 	for (auto& file : files) {
-		if (bVerbose)
-			printf("Processing %s..\n", file.c_str());
+		printf("Processing %s..\n", file.c_str());
 		
 		std::string output_path = file;
 		replace(output_path, argp[1], output_dir);
 
-
 		std::ifstream fileStream(file, std::ios::binary);
 		if (fileStream.good()) {
-			int totalSize = -1, num_file = 0;
+			int totalSize = -1;
 			fileStream.seekg(0, std::ios::end);
 			totalSize = (int)fileStream.tellg();
 			fileStream.seekg(0, std::ios::beg);
@@ -157,16 +156,19 @@ int main(int argc, char ** argp)
 					num_file++;
 
 					std::string filename = GetFilename(file, false).append("_").append(std::to_string(num_file)).append(tmpSection.getExtension());
-					std::ofstream output_file(std::filesystem::path(output_path).parent_path().string().append("\\" + filename).c_str(), std::ios::binary);
+					std::string path = std::filesystem::path(output_path).parent_path().string().append("\\" + filename).c_str();
+					std::ofstream output_file(path, std::ios::binary);
 
 					std::filesystem::create_directories(std::filesystem::path(output_path).parent_path());
 
-					if (bVerbose)
-						printf("Writing to %s..\n", std::filesystem::path(output_path).parent_path().string().append("\\" + filename).c_str());
-
 					if (output_file.good()) {
+						printf("Writing to %s..\n", path.c_str());
 						output_file.write(reinterpret_cast<char*>(&tmpSection.data.data()[0]), tmpSection.size);
 						output_file.close();
+						++num_completed;
+					} else {
+						printf("Unable to write to %s..\n", path.c_str());
+						++num_failed;
 					}
 				}
 			}
@@ -175,4 +177,7 @@ int main(int argc, char ** argp)
 		}
 		fileStream.close();
 	}
+
+
+	printf("All tasks completed with %d errors. (%d out of %d).\n", num_failed, num_completed, num_file);
 }
