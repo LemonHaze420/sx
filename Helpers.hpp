@@ -61,3 +61,9 @@ static bool replace(std::string& str, const std::string& from, const std::string
 	str.replace(start_pos, from.length(), to);
 	return true;
 }
+static size_t GetFileSize(std::ifstream& str) {
+	str.seekg(0, std::ios::end);
+	auto totalSize = str.tellg();
+	str.seekg(0, std::ios::beg);
+	return totalSize;
+}
