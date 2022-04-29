@@ -9,14 +9,13 @@ std::vector <std::string> exclude_extensions = {
 };
 
 // List of Sections to extract
-std::vector<unsigned int> SectionList = {
-	FOURCC('P','V','R','T')
+std::vector<SectionConfig> SectionList = {
+	//			   Identifier			Size Offset
+	{		FOURCC('P','V','R','T'),		0			},
 };
 
 int main(int argc, char ** argp)
 {
-	bool bVerbose = true;
-
 	std::string output_dir;
 	if (argc == 3)
 		output_dir = argp[2];
@@ -58,6 +57,7 @@ int main(int argc, char ** argp)
 					}
 				}
 			}
+
 			if (fileStream.eof() || !fileStream.good())
 				continue;
 		}

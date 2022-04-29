@@ -1,6 +1,11 @@
 #pragma once
 #include "Helpers.hpp"
 
+struct SectionConfig {
+	unsigned int identifier;			// e.g. PVRT
+	unsigned long long size_offset;		// e.g. 0 for PVRT (the size comes right after the identifier)
+};
+
 class Section {
 public:
 	Section(std::ifstream& str, size_t max_len);

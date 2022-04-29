@@ -17,8 +17,10 @@
 #define FOURCC(a,b,c,d)	 (signed int)((char)(a & 0xFF) << 24 | (char)(b & 0xFF) << 16 | (char)(c & 0xFF) << 8 | (char)(d & 0xFF))
 #define FLIP(x)			 (signed int)(( x >> 24 ) | (( x << 8) & 0x00ff0000 )| ((x >> 8) & 0x0000ff00) | ( x << 24))
 
+struct SectionConfig;
+
 extern std::vector <std::string> exclude_extensions;
-extern std::vector<unsigned int> SectionList;
+extern std::vector<SectionConfig> SectionList;
 
 static std::vector <std::string> FindFilesOfExtension(std::string searchDir, bool use_excludes = true) {
 	std::vector <std::string> res;
