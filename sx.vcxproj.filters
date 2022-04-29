@@ -18,9 +18,15 @@
     <ClCompile Include="sx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Section.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Helpers.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Section.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
