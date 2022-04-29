@@ -17,7 +17,10 @@
 #define FOURCC(a,b,c,d)	 (signed int)((char)(a & 0xFF) << 24 | (char)(b & 0xFF) << 16 | (char)(c & 0xFF) << 8 | (char)(d & 0xFF))
 #define FLIP(x)			 (signed int)(( x >> 24 ) | (( x << 8) & 0x00ff0000 )| ((x >> 8) & 0x0000ff00) | ( x << 24))
 
-std::vector <std::string> FindFilesOfExtension(std::string searchDir, bool use_excludes = true) {
+extern std::vector <std::string> exclude_extensions;
+extern std::vector<unsigned int> SectionList;
+
+static std::vector <std::string> FindFilesOfExtension(std::string searchDir, bool use_excludes = true) {
 	std::vector <std::string> res;
 	for (auto& path : std::filesystem::recursive_directory_iterator(searchDir)) {
 		bool bSkip = false;
@@ -36,7 +39,7 @@ std::vector <std::string> FindFilesOfExtension(std::string searchDir, bool use_e
 	}
 	return res;
 }
-std::string GetFilename(std::string fullPath, bool with_extension = true) {
+static std::string GetFilename(std::string fullPath, bool with_extension = true) {
 	const size_t last_slash_idx = fullPath.find_last_of("\\/");
 	if (std::string::npos != last_slash_idx) {
 		fullPath.erase(0, last_slash_idx + 1);
@@ -49,7 +52,7 @@ std::string GetFilename(std::string fullPath, bool with_extension = true) {
 	return fullPath;
 }
 
-bool replace(std::string& str, const std::string& from, const std::string& to) {
+static bool replace(std::string& str, const std::string& from, const std::string& to) {
 	size_t start_pos = str.find(from);
 	if (start_pos == std::string::npos)
 		return false;

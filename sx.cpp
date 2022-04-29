@@ -1,7 +1,7 @@
 /*
 		(S)ection (X)tractor	- LemonHaze - 2022
 */
-#include "Helpers.hpp"
+#include "Section.h"
 
 // Files extensions to explicitly exclude when processing files for sections
 std::vector <std::string> exclude_extensions = {
@@ -11,44 +11,6 @@ std::vector <std::string> exclude_extensions = {
 // List of Sections to extract
 std::vector<unsigned int> SectionList = {
 	FOURCC('P','V','R','T')
-};
-
-class Section {
-public:
-	Section(std::ifstream& str, size_t max_len) : stream(str) 
-	{
-		unsigned int tmpIdent = -1, tmpSize = -1;
-		str.read(reinterpret_cast<char*>(&tmpIdent), 4);
-
-		for (auto& section : SectionList) {
-			if (section == tmpIdent || section == FLIP(tmpIdent))
-			{
-				identifier = tmpIdent;
-				str.read(reinterpret_cast<char*>(&tmpSize), 4);
-				if (tmpSize > 0 && tmpSize <= max_len) {
-					str.seekg(-8, std::ios::cur); // we've read 2 * 4 bytes so far, so we need to go back 8..
-
-					size = tmpSize; data.reserve(tmpSize);
-					str.read(reinterpret_cast<char*>(&data.data()[0]), tmpSize);
-					data.shrink_to_fit();
-				}
-				break;
-			}
-		}
-
-	}
-	~Section() = default;
-
-	std::string getExtension() {
-		return (SectionList[0] == identifier || SectionList[0] == FLIP(identifier) ? ".pvr" : FOURST(identifier));
-	}
-
-	size_t size = 0x0;
-	std::vector<unsigned char> data;
-
-protected:
-	signed int identifier = 0x0;
-	std::ifstream& stream;
 };
 
 int main(int argc, char ** argp)
@@ -103,5 +65,5 @@ int main(int argc, char ** argp)
 	}
 
 
-	printf("All tasks completed with %d errors. (%d out of %d).\n", num_failed, num_completed, num_file);
+	printf("All tasks completed with %d errors. (%d out of %d with %lld total files).\n", num_failed, num_completed, num_file, files.size());
 }
