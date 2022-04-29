@@ -1,0 +1,178 @@
+#define FOURST(x)		 std::string(reinterpret_cast<char*>(&x), 4)
+#define FOURCC(a,b,c,d)	 (signed int)((char)(a & 0xFF) << 24 | (char)(b & 0xFF) << 16 | (char)(c & 0xFF) << 8 | (char)(d & 0xFF))
+#define FLIP(x)			 (signed int)(( x >> 24 ) | (( x << 8) & 0x00ff0000 )| ((x >> 8) & 0x0000ff00) | ( x << 24))
+
+#include <Windows.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <stdlib.h>
+#include <stdio.h>
+#include <filesystem>
+#include <fstream>
+#include <istream>
+#include <ostream>
+#include <iterator>
+#include <sstream>
+#include <assert.h>
+
+std::vector <std::string> exclude_extensions = {
+	".EMU",
+};
+
+std::vector<unsigned int> SectionList = {
+	FOURCC('P','V','R','T')
+};
+
+class Section {
+public:
+	Section(std::ifstream& str, size_t max_len) : stream(str) 
+	{
+		unsigned int tmpIdent = -1, tmpSize = -1;
+		str.read(reinterpret_cast<char*>(&tmpIdent), 4);
+
+		for (auto& section : SectionList) {
+			if (section == tmpIdent || section == FLIP(tmpIdent))
+			{
+				identifier = tmpIdent;
+				str.read(reinterpret_cast<char*>(&tmpSize), 4);
+				if (tmpSize > 0 && tmpSize <= max_len) {
+					str.seekg(-8, std::ios::cur); // we've read 2 * 4 bytes so far, so we need to go back 8..
+
+					size = tmpSize; data.reserve(tmpSize);
+					str.read(reinterpret_cast<char*>(&data.data()[0]), tmpSize);
+					data.shrink_to_fit();
+				}
+				break;
+			}
+		}
+
+	}
+	~Section() = default;
+
+	std::string getExtension() {
+		return (SectionList[0] == identifier || SectionList[0] == FLIP(identifier) ? ".pvr" : FOURST(identifier));
+	}
+
+	size_t size = 0x0;
+	std::vector<unsigned char> data;
+
+protected:
+	signed int identifier = 0x0;
+	std::ifstream& stream;
+};
+
+std::vector <std::string> FindFilesOfExtension(std::string searchDir, bool use_excludes = true) {
+	std::vector <std::string> res;
+	for (auto& path : std::filesystem::recursive_directory_iterator(searchDir)) {
+		bool bSkip = false;
+		if (use_excludes) {
+			for (auto& ext : exclude_extensions)
+				if (ext == path.path().extension().string())
+					bSkip = true;
+		}
+
+		// use bSkip if we're using the exclusion list or always save the path if not
+		if (use_excludes ? bSkip : true)
+		{
+			res.push_back(path.path().string());
+			(res.size() % 16 ? res.shrink_to_fit() : (void)0);
+		}
+	}
+	return res;
+}
+std::string GetFilename(std::string fullPath, bool with_extension = true) {
+	const size_t last_slash_idx = fullPath.find_last_of("\\/");
+	if (std::string::npos != last_slash_idx) {
+		fullPath.erase(0, last_slash_idx + 1);
+	}
+	if (!with_extension) {
+		const size_t period_idx = fullPath.rfind('.');
+		if (std::string::npos != period_idx)
+			fullPath.erase(period_idx);
+	}
+	return fullPath;
+}
+
+bool replace(std::string& str, const std::string& from, const std::string& to) {
+	size_t start_pos = str.find(from);
+	if (start_pos == std::string::npos)
+		return false;
+	str.replace(start_pos, from.length(), to);
+	return true;
+}
+
+int main(int argc, char ** argp)
+{
+	bool bVerbose = true;
+
+	std::string output_dir;
+	if (argc == 3)
+		output_dir = argp[2];
+
+	auto files = FindFilesOfExtension(argp[1]);
+	for (auto& file : files) {
+		if (bVerbose)
+			printf("Processing %s..\n", file.c_str());
+		
+		std::string output_path = file;
+		replace(output_path, argp[1], output_dir);
+
+		int num_pvrs = 0;
+
+		std::ifstream fileStream(file, std::ios::binary);
+		if (fileStream.good()) {
+			// read in the size of the entire binary..
+			int totalSize = -1;
+			fileStream.seekg(0, std::ios::end);
+			totalSize = fileStream.tellg();
+			fileStream.seekg(0, std::ios::beg);
+
+		LOOP:
+			while (!fileStream.eof()) {
+				int ident = 0x0;
+				fileStream.read(reinterpret_cast<char*>(&ident), 4);
+
+				if (ident == 0x50565254 || ident == 0x54525650)
+					goto EXTRACT;
+			}
+			// move on now, we've finished..
+			if (fileStream.eof() || !fileStream.good())
+				continue;
+			else goto LOOP;
+
+		EXTRACT:
+			if (bVerbose)
+				printf("Found PVRT header @ 0x%X\n", (int)fileStream.tellg());
+
+			int size = 0x0;
+			fileStream.read(reinterpret_cast<char*>(&size), 4);
+			fileStream.seekg(-8, std::ios::cur);
+
+			if ((size > 0) && (size <= totalSize)) {
+				num_pvrs++;
+
+				char* new_file = new char[size];
+				memset(new_file, 0x00, size);
+				fileStream.read(new_file, size);
+				
+				std::string filename = GetFilename(file, false).append("_").append(std::to_string(num_pvrs)).append(".pvr");
+				std::ofstream output_file(std::filesystem::path(output_path).parent_path().string().append("\\" + filename).c_str(), std::ios::binary);
+
+				// create directory structure if it doesn't exist...
+				std::filesystem::create_directories(std::filesystem::path(output_path).parent_path());
+
+				if (bVerbose)
+					printf("Writing to %s..\n", std::filesystem::path(output_path).parent_path().string().append("\\" + filename).c_str());
+
+				if (output_file.good()) {
+					output_file.write(new_file, size);
+					output_file.close();
+				}
+				delete[] new_file;
+			}
+			goto LOOP;
+		}
+		fileStream.close();
+	}
+}
