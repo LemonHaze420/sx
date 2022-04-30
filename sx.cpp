@@ -11,7 +11,7 @@ std::vector <std::string> exclude_extensions = {
 // List of Sections to extract
 std::vector<SectionConfig> SectionList = {
 	//               Identifier            Size Offset
-	//{        FOURCC('P','V','R','T'),        0            },
+	{        FOURCC('P','V','R','T'),        0            },
 	{        FOURCC('D','T','P','K'),        4            },
 };
 
