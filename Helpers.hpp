@@ -13,8 +13,11 @@
 #include <sstream>
 #include <assert.h>
 
+#define MIN_INI_VER 1
+
 #define FOURST(x)		 std::string(reinterpret_cast<char*>(&x), 4)
 #define FOURCC(a,b,c,d)	 (signed int)((char)(a & 0xFF) << 24 | (char)(b & 0xFF) << 16 | (char)(c & 0xFF) << 8 | (char)(d & 0xFF))
+#define ST2CC(x)		 FOURCC(x.c_str()[0], x.c_str()[1], x.c_str()[2], x.c_str()[3])
 #define FLIP(x)			 (signed int)(( x >> 24 ) | (( x << 8) & 0x00ff0000 )| ((x >> 8) & 0x0000ff00) | ( x << 24))
 
 struct SectionConfig;
@@ -22,7 +25,7 @@ struct SectionConfig;
 extern std::vector <std::string> exclude_extensions;
 extern std::vector<SectionConfig> SectionList;
 
-static std::vector <std::string> FindFilesOfExtension(std::string searchDir, bool use_excludes = true) {
+static std::vector <std::string> FindAllFilesInDirectory(std::string searchDir, bool use_excludes = true) {
 	std::vector <std::string> res;
 	for (auto& path : std::filesystem::recursive_directory_iterator(searchDir)) {
 		bool bSkip = false;
