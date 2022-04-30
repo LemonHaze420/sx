@@ -15,7 +15,8 @@ Section::Section(std::ifstream& str, size_t max_len) : stream(str)
 				str.seekg((0-8-section.size_offset), std::ios::cur);					// go back the size of 'size' AND 'identifier' + the offset we have stored in the config for it
 
 				size = tmpSize; data.reserve(tmpSize);
-				str.read(reinterpret_cast<char*>(&data.data()[0]), tmpSize);			// read the data from the stream into the std::vector of bytes we have in the class
+				data.resize(tmpSize);
+				str.read(reinterpret_cast<char*>(data.data()), tmpSize);			// read the data from the stream into the std::vector of bytes we have in the class
 				data.shrink_to_fit();
 			}
 			break;

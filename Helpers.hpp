@@ -33,7 +33,7 @@ static std::vector <std::string> FindFilesOfExtension(std::string searchDir, boo
 		}
 
 		// use bSkip if we're using the exclusion list or always save the path if not
-		if (use_excludes ? bSkip : true)
+		if (use_excludes ? !bSkip : true)
 		{
 			res.push_back(path.path().string());
 			(res.size() % 16 ? res.shrink_to_fit() : (void)0);
