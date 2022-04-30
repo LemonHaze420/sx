@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\inih">
+      <UniqueIdentifier>{91048749-d26d-4fc3-a8da-69731ddd97bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\inih">
+      <UniqueIdentifier>{d2034661-6658-4271-83ec-5d9ae07fdf41}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sx.cpp">
@@ -21,6 +27,12 @@
     <ClCompile Include="Section.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="inih\cpp\INIReader.cpp">
+      <Filter>Source Files\inih</Filter>
+    </ClCompile>
+    <ClCompile Include="inih\ini.c">
+      <Filter>Source Files\inih</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Helpers.hpp">
@@ -28,6 +40,12 @@
     </ClInclude>
     <ClInclude Include="Section.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inih\cpp\INIReader.h">
+      <Filter>Header Files\inih</Filter>
+    </ClInclude>
+    <ClInclude Include="inih\ini.h">
+      <Filter>Header Files\inih</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
