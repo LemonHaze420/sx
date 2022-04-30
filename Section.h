@@ -11,14 +11,14 @@ public:
 	Section(std::ifstream& str, size_t max_len);
 	~Section() = default;
 
-	std::string getExtension() {
-		return (FOURCC('P', 'V', 'R', 'T') == identifier || FOURCC('P', 'V', 'R', 'T') == FLIP(identifier) ? ".pvr" : FOURST(identifier));
-	}
+	std::string					getExtension()	{ return (FOURCC('P', 'V', 'R', 'T') == identifier || FOURCC('P', 'V', 'R', 'T') == FLIP(identifier) ? ".pvr" : std::string("." + FOURST(identifier))); }
+	size_t						getSize()		{ return size; }
+	std::vector<unsigned char>	getData()		{ return data; }
 
+protected:
 	size_t size = 0x0;
 	std::vector<unsigned char> data;
 
-protected:
 	signed int identifier = 0x0;
 	std::ifstream& stream;
 };

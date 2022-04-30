@@ -10,8 +10,9 @@ std::vector <std::string> exclude_extensions = {
 
 // List of Sections to extract
 std::vector<SectionConfig> SectionList = {
-	//			   Identifier			Size Offset
-	{		FOURCC('P','V','R','T'),		0			},
+	//               Identifier            Size Offset
+	//{        FOURCC('P','V','R','T'),        0            },
+	{        FOURCC('D','T','P','K'),        4            },
 };
 
 int main(int argc, char ** argp)
@@ -35,7 +36,7 @@ int main(int argc, char ** argp)
 			while (!fileStream.eof() && fileStream.good()) {
 				Section tmpSection(fileStream, fileSize);
 
-				if (tmpSection.data.size() > 0) 
+				if (tmpSection.getSize() > 0) 
 				{
 					num_file++;
 
@@ -47,7 +48,7 @@ int main(int argc, char ** argp)
 					std::ofstream output_file(path, std::ios::binary);
 					if (output_file.good()) {
 						printf("Writing to %s..\n", path.c_str());
-						output_file.write(reinterpret_cast<char*>(&tmpSection.data.data()[0]), tmpSection.size);
+						output_file.write(reinterpret_cast<const char*>(tmpSection.getData().data()), tmpSection.getData().size());
 						output_file.close();
 						++num_completed;
 					} 
@@ -66,4 +67,6 @@ int main(int argc, char ** argp)
 	}
 
 	printf("All tasks completed with %d errors. (%d out of %d with %lld total files).\n", num_failed, num_completed, num_file, files.size());
+
+	return 0;
 }
