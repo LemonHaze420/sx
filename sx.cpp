@@ -5,9 +5,7 @@
 #include "cpp/INIReader.h"
 
 // Files extensions to explicitly exclude when processing files for sections
-std::vector <std::string> exclude_extensions = {
-	".EMU",
-};
+std::vector <std::string> exclude_extensions = {};
 
 // List of Sections to extract
 std::vector<SectionConfig> SectionList = {
@@ -25,10 +23,10 @@ void InitializeConfiguration()
 				bDisableDTPK = reader.GetBoolean("general", "disable_dtpk", false);
 		int		ini_ver = reader.GetInteger("general", "version", 0);
 		printf("Config loaded from 'sx.ini': version=%d\n", ini_ver);
-		if (ini_ver >= MIN_INI_VER)
-			printf("Supported config version!\n");
-		else
+		if (ini_ver < MIN_INI_VER) {
+			printf("Unsupported config version! (%d < %d)\n", ini_ver, MIN_INI_VER);
 			return;
+		}
 
 		if (bDisablePVRT)
 		{
@@ -44,7 +42,7 @@ void InitializeConfiguration()
 		}
 
 		// collect any section configs
-		for (int i = 0; i < 0xFF; ++i) {
+		for (int i = 0; i < 65536; ++i) {
 			std::string tmp_section_name = reader.GetString("sections", ("SectionName" + std::to_string(i)), "");
 			if (tmp_section_name != "")
 			{
